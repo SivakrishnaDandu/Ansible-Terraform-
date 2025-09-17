@@ -1,0 +1,10 @@
+- name: Fact variables in Ansible
+  hosts: webserver
+  become: true
+  tasks:
+  - name: install httpd package
+    package: name=httpd state=present
+    when: ansible_os_family == "RHEL"
+  - name: install apache2 package
+    package: name=apache2 state=present
+    when: ansible_os_family == "Debian"
