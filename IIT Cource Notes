@@ -1,0 +1,2805 @@
+Agenda: 06 Sep-2025
+=====================================
+Introduction of Configuration Management
+Discuss on Different CM tools
+Push and Pull Approach
+Introduction to Ansible
+Ansible Architecture and its components
+Setup Ansible Controller and worker nodes.
+Ansible Adhoc commands
+=========================================
+
+
+In Class - Drawings Link:  
+
+https://drive.google.com/file/d/1KHkl5clC9-Jlwcdkcnoujj3uy6_bN2bw/view?usp=drive_link
+
+Configuration
+=========================================
+make changes on multiple server
+    -> installing packages 
+    -> copying config files
+    -> creating files and directories
+    -> creation users and groups
+    -> setting up permissions
+    -> deploying applications
+    -> execution of script
+
+If we have to these changes/tasks on 200 servers manually:
+    -> Time consuming 
+    -> repetitive
+    -> error prone
+    -> application  may crash
+    -> all updates may not be available
+    -> keeping a track of changes will be difficult
+    -> Activities should done separately for different OS
+
+Configuration Management:
+================================
+> Using an automation tool to make changes on several servers in different environments in very less time .
+> It is all about bringing consistency across on the servers-> this can be achieved by using an automation tool.
+> An automation tool will also ensure your desired changes are always available on the servers
+>If our desired configurations are not available on the servers then the tool should identify that and make change son the servers
+to get desired setup.
+>We write code in order to make configurations changes using the tools
+> This code can be maintained in VC tool and can collaborated with other team members.
+> CM tool connect to the available infra and then make changes on them
+> It creates a Logs of change performed in servers.
+
+Infrastructure as a code tool: Terraform
+======================================
+Writing the code to create/modify/delete infrastructure on the cloud (AWS, azure, GCP)
+Using a tool to write the code and provision the infra is called as IAC tool 
+
+
+Various CM tools:
+==================================
+
+PULL Approach
+==============
+-> puppet
+-> Chef
+
+PUSH Approach
+================
+-> Ansible
+-> Salt stack
+
+Pull aproach:
+==================
+
+> chef
+> puppet
+
+In the pull approach changes are pulled by the agent nodes 
+The controller or the master node will not make any changes on the agent nodes
+The agent nodes have a agent process installed on them
+these agent process will poll the controller on the scheduled time for changes
+if there are new changes computed on the master node, the agent process will pull the changes and execute on themselves.
+
+
+
+Push approach:
+=================
+
+> saltstack
+>Ansible
+
+The code is written in the master/Controller node
+These tools can connect to the agent/host nodes parallely 
+These tools will then apply configuration code changes immediatly on the host/agent servers
+On the host/agent servers no agent process is present
+Everything is controlled by master node
+
+===================================
+Ansible:
+====================================
+-> It is an open source tool and use it for free
+-> It is very simple tool and easy to learn 
+-> It works on push approach.
+-> Ansible as a tool has 2 parts:
+ 1. Ansible core -> Ansible to be used on the command line 
+ 2. Ansible tower/AWX -> It is the GUI of ansible or Ansible dashboard
+ -> Ansible will always be installed on a Linux OS
+ -> Ansible can connect to servers of any OS -> Linux or windows
+ -> Ansible is a python based tool which required version >=2.7
+ -> Ansible configuration code is written in YAML
+ -> It is an agentless tools
+ -> It support configuring infrastructure on the cloud also.
+ 
+ =====================================
+ INVENTORY: WHERE TO DO THE CHANGES
+ ==============================
+ It is a simple file in which we will write the list of Ip address or hostnames of the servers where ansible can connect and make changes.
+ This file is available by default with a name "hosts" and is available at the directory "/etc/ansible"
+ You can create your inventory file also and place it any directory of the controller.
+ 
+ There are 2 types of inventory file:
+ 
+ 1. Static Inventory: 
+ ============================
+ Inventory file is created by user 
+ Ip address are written by the user in the file
+ When you have limited infra then create the static file.
+ 
+ 2. Dynamic Inventory:
+ =============================
+ If the number of servers are auto scaling that means they are on the cloud
+ then we use ansible to generate our inventory file
+
+====================================================
+Modules: What changes to do
+--------------------------
+They are nothing but python scripts (ansible pre-written code) that are pushed to host servers to make changes.
+These modules accept some input parameters from the user to configure desired changes on the servers
+
+example : copy module -> accept input like source file location and destination
+
+get_url : url=https://example.com/file1 dest=/tmp
+
+Ansible works by connecting to your host servers and pushing these scripts which we call as ansible modules on them.
+
+https://docs.ansible.com/ansible/2.8/modules/list_of_all_modules.html
+
+We can create our own custom modules also in ansible using pyhton.
+
+======================================================
+Playbooks:
+======================================================
+Ansible code will be written in a file called as playbook 
+A playbook consist of a play 
+A play is nothing but:
+  inventory hosts -> servers where to do changes 
+  tasks to be performed
+     -> modules to be executed
+playbook is written in YAML
+
+playbook with YAML code --> playbook is run on the ACM--> 
+it is then converted to a python code --> this py code is copied on the hostserver using SSH or winrm
+ansible then executed the py program on each hosts --> after the code is executed --> 
+the python code is deleted from host server
+In the playbook we can add -> variable, conditions, dependencies, handle errors, loops 
+
+=========================================================
+ansible.cfg file - present in /etc/ansible 
+=========================================================
+All the configuration details of ansible are placed in this file.
+user details, password details, module location, inventory location, fork details 
+You can also create your own ansible.cfg with required parameters for the execution of the playbook
+==========================================================
+
+Architecture
+
+
+
+
+
+Installing Ansible on Ubuntu
+$ sudo apt update
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository --yes --update ppa:ansible/ansible
+$ sudo apt install ansible -y 
+
+Use this URL to install ansible on other distributions of Linux
+
+https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-distros
+
+
+Open SSH connection between Controller and worker nodes:
+===========================================================
+
+ON the Controller Machine -> DevOps Lab
+
+# sudo su -
+
+Create a new user on the terminal:
+
+
+# adduser ansiuser
+
+
+Enter New password :  ansiuser
+Retype new Password: ansiuser
+
+
+Don’t enter any value for fullname, room number, workphone, homephone other
+
+
+Just keep pressing enter key.	
+
+
+And give Y  for 
+
+
+Is the information correct ? [Y/n]  : y
+
+
+
+
+
+
+
+
+
+User will now be created.
+
+===============================================
+Step 2:
+
+We will give sudo permission to this user so that it can execute linux commands without need of password
+
+Add ansiuser in sudoers files and give all permission
+# vim /etc/sudoers
+Press i
+Scroll down until your find : # User privilege specification
+Now enter below line under 🡺labuser ALL=(ALL) NOPASSWD:ALL
+
+ansiuser ALL=NOPASSWD: ALL
+
+
+
+Save the file.
+Press ESC key
+Enter :wq! 
+Press enter key
+
+
+
+Step 4:
+
+Generate SSH key on Devops Lab machine
+
+Step 1: 
+Change user from root to ansiuser
+#   su - ansiuser
+Step 2:
+Generate ssh key on Master node for ansiuser
+Execute below command:
+# ssh-keygen
+
+press enter
+press enter
+press enter
+
+ssh key will be generated
+
+
+
+Create a worker node on AWS LAB
+
+
+
+
+
+Copy the sign-in link and paste on a new windows tab
+
+Login with given username and password
+
+
+
+Click on sign -in . We will be on AWS dashboard
+
+Create an Ec2 server:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Scroll down: you will see a button for ADD security group rule.
+
+
+
+
+
+
+Click on launch instance.
+
+
+
+
+Connect to the server
+
+
+
+
+
+Connect to Worker Node
+Open command prompt on windows or terminal on Mac
+
+Execute below commands:
+
+# cd downloads/
+# Paste the AWS ssh command
+Example:
+ssh -i "12Oct24.pem" ubuntu@ec2-54-158-236-220.compute-1.amazonaws.com
+
+
+
+
+Steps to be executed on Worker Node:
+=======================================
+
+
+# sudo su -
+
+Create a new user on the terminal:
+
+
+# adduser ansiuser
+
+
+Enter New password :  ansiuser
+Retype new Password: ansiuser
+
+
+Don’t enter any value for fullname, room number, workphone, homephone other
+
+
+Just keep pressing enter key.	
+
+
+And give Y  for 
+
+
+Is the information correct ? [Y/n]  : y
+
+
+
+
+
+
+
+
+
+User will now be created.
+
+===============================================
+Step 2:
+
+We will give sudo permission to this user so that it can execute linux commands without need of password
+
+Add ansiuser in sudoers files and give all permission
+# vim /etc/sudoers
+Press i
+Scroll down until your find : # User privilege specification
+Now enter below line under 🡺root    ALL=(ALL:ALL) ALL
+ansiuser ALL=NOPASSWD: ALL
+
+
+
+
+Now switch to ansiuser on worker node and create .ssh folder
+
+# su - ansiuser
+
+# mkdir .ssh
+
+# ls -al
+
+
+====================================
+Go to master node(devops lab) and copy the ssh public key of ansiuser
+
+# cat /home/ansiuser/.ssh/id_rsa.pub
+
+
+
+Right click and copy the copy
+
+
+Carefully copy the key
+
+
+
+
+
+
+
+Go to Worker node (AWS VM)
+
+# echo "<give your public key>" >> ~/.ssh/authorized_keys
+
+
+
+
+Great job, the setup is complete
+
+Validate you are able to SSH into the Worker node
+======================================
+On the devops lab execute below command
+
+
+# ssh ansiuser@<public IP of Ec2 server>
+
+You will be connected on the host machine.
+
+Pls give Exit command to come out of worker node
+
+# exit
+===============================================
+Ansible Inventory
+
+Create your own ansible Inventory and configuration file
+
+# su - ansiuser
+
+# cd
+
+# pwd
+
+You should be in the ansiuser home directory
+
+
+
+# vim myinventory
+
+[webserver]
+Public ipaddress
+
+
+
+
+Execute the below command to use the created inventory file for running module
+
+# ansible -i /home/ansiuser/myinventory webserver -m ping
+
+Ansible configuration file
+
+We will create our own ansible.cfg file now to set myinventory as the default inventory file for ansiuser.
+
+# vim ansible.cfg
+
+[defaults]
+
+inventory = /home/ansiuser/myinventory
+interpreter_python = auto_silent
+
+
+Save the file.
+
+
+
+# ansible webserver -m ping
+
+
+AnsibleCode is written in 2 ways:
+================================
+> Ad Hoc commands
+Ad  hoc commands are single line commands
+Using ad hoc command we execute a single module on the worker nodes
+Whenever we have to quickly check something on the worker node we execute an ad hoc command
+When wever have to validate an putput on worker nodes, we will use adhoc commands.
+
+
+
+Syntax:
+
+# ansible <hostgroupname> -m <moduleName> -a “par1=value par2=value”
+
+Demo:
+
+# ansible webserver -m command -a "uptime"
+
+# ansible webserver -m command -a "df -h"
+
+Create a directory:
+
+# ansible webserver -m file -a "path=/tmp/mydir state=directory"
+
+Validate:
+
+# ansible webserver -m command -a "ls /tmp"
+
+Create a file in the directory
+
+# ansible webserver -m file -a "path=/tmp/mydir/file1 state=touch"
+
+Validate:
+
+# ansible webserver -m command -a "ls /tmp/mydir"
+
+Add content to the file 
+# ansible webserver -m copy -a 'content="Hello form Ansible controller" dest=/tmp/mydir/file1'
+
+Validate it:
+
+# ansible webserver -m command -a "cat /tmp/mydir/file1"
+
+Assignment:
+=====================
+ Explore the module fetch and wrote adhoc command
+Explore the module copy and copy a file from controller to worker.
+====================================
+
+YAML Introduction:
+=====================================
+
+YAML Introduction:
+=============================================
+Ansible playbooks are written in YAML
+YAML stands for Yet another markup language or YAML a'int a markup language
+The file with YAML code will have extension as .yml or .YAML
+YAML is not a programming language and is also not a scripting langauage
+It is just a file format to save data
+It is case sensitive and space sensitive
+It is easy to learn and understand. No special coding skills are required.
+YAML stores data in the format of key and value pair 
+YAML is declarative in nature 
+Syntax:
+
+key: value
+The key is given by ansible tool
+Value is given by the user.
+The value can be a string, number, boolean, decimal
+
+A key: value is called as a map 
+
+A key can store single value or a list of values 
+
+Use '#' to write a comment in YAML 
+
+Use '---' to indicate beginning of YAML file  -> Its not mandatory to give ---
+
+Example : YAML code when a key stores single value:
+================================================
+
+---
+company: Simplilearn
+Trainer: Sonal Mittal
+Trianing: Ansible 
+Time: 7pm
+days: Weekend
+
+Validate if the YAML written is correct or not.
+
+https://www.yamllint.com/
+
+
+
+Example 2: YAML code when a key stores list of values:
+================================================
+
+---
+company: Simplilearn
+Trainers:
+  - Sonal
+  - Ravi
+  - Abhi
+  - Jack
+  - John
+Trainings: 
+  - Ansible 
+  - DevOps 
+  - AZure
+  - AWS
+Time: ['7PM','9AM','8PM']
+days: 
+  - Weekend
+  - Weekdays
+
+
+  Example 3: YAML code when a key stores again a key and value(storing a MAP):
+  ================================================
+  
+  ---
+  company: Simplilearn
+  Trainers:
+    - name: Sonal
+      email: admin@gmail.com
+    - name: ravi 
+      email: admin@gmail.com
+  Trainings:
+    type:
+     - name: Devops 
+       tools: 
+         - ansible 
+         - jenkins
+         - git
+
+
+==================================================
+
+Ansible Playbooks:
+===================================
+
+Playbook1- debug module
+
+# vim playbookDebug.yml
+
+- name: Print a message on Console
+  hosts: webserver
+  tasks:
+  - name: Print a welcome message
+    debug: msg="Hello form Ansible Controller"
+
+# ansible-playbook playbookDebug.yml --syntax-check
+
+# ansible-playbook playbookDebug.yml 
+
+
+Register Variables:
+==================================
+
+Variables : are temporary locations where data is stored.
+
+Whenever a module is executed and you want to store its output we will use ansible Register variable
+
+Register variable will store output of the module that was written just above the register keyword
+
+
+# vim playbookRegister.yml
+
+- name: Register Variables in ansible
+  hosts: webserver
+  tasks:
+  - name: Print a message
+    debug: msg="Run a command"
+  - name: Execute command on the host server
+    command: hostname -s
+    register: command_output
+  - name: print the register variable value
+    debug: var=command_output.stdout
+  
+Save the file and execute
+
+
+# ansible-playbook playbookRegister.yml
+
+
+======================================================
+
+07-Sep-2025
+
+Variables, fact Variables
+Conditions 
+Handlers
+Ansible Roles
+
+
+Lab is reset, let us redo the steps
+============================================
+Execute a playbook to install package and create a file
+
+
+# vim playbook2.yml
+
+
+- name: Install packages on the worker node
+  hosts: webserver
+  become: true
+  become_user: root
+  tasks:
+  - name: update the apt repo
+    command: apt-get update
+  - name: install php on hostserver
+    package: name=php state=present
+  - name: Create a file on hostserver
+    file: path=/tmp/myfile state=touch
+
+
+Save the file(:wq!)
+
+# ansible-playbook playbook2.yml
+
+
+===========================================
+Variables in Playbooks:
+==========================================
+
+Variables -> temporary memory locations that store data 
+
+To make our playbooks reusable use variables 
+usign variables, we will be able to pass new data to the parameters in the tasks sections
+
+A variable can store a single value or a list of values  
+variables can store a string, number, boolean value 
+Variables are 2 types in ansible - Custom and fact variables
+
+ 
+Custom variables:
+=======================
+  - Variables created by users 
+  - variable name given by user 
+  - variable value given by user 
+  - These variables can be declared in a playbook or in a sperate file or in a inventory file also 
+  - The variable values can be referred in the tasks section as {{ var_name }} 
+
+
+
+
+
+# vim playbookvaraibles.yml
+
+- name: Custom Variables in Ansible 
+  hosts: webserver
+  become: true
+  become_user: root
+  vars:
+    pkg_name: git
+    pkg_state: present
+    file_path: /tmp/mydemo
+    file_state: directory
+  tasks:
+  - name: update the apt repo
+    command: apt-get update
+  - name: install {{ pkg_name }} on hostserver
+    package: name={{ pkg_name }} state={{ pkg_state }}
+  - name: Create a directory on hostserver
+    file: path={{ file_path }} state={{ file_state }}
+Save the playbook and run it.
+
+=============================================
+Store the variables in a separate file
+
+
+# vim variables.yml
+
+    pkg_name: git
+    pkg_state: present
+    file_path: /tmp/mydemo
+    file_state: directory
+
+Save the file (:wq!)
+
+
+
+# vim playbook4.yml
+
+- name: Custom Variables in Ansible 
+  hosts: webserver
+  become: true
+  become_user: root
+  # vars:  local variables- 
+  vars_files:
+    - variables.yml
+  tasks:
+  - name: update the apt repo
+    command: apt-get update
+  - name: install {{ pkg_name }} on hostserver
+    package: name={{ pkg_name }} state={{ pkg_state }}
+  - name: Create a directory on hostserver
+    file: path={{ file_path }} state={{ file_state }}
+
+
+Save the file and run the playbook
+
+==============================
+Run the playbook by passing values to the variables at runtime.
+Use the option : --extra-vars
+
+# ansible-playbook playbook4.yml --extra-vars "pkg_name=maven pkg_state=absent file_path=/tmp/newdemo file_state=touch"
+
+===============================
+FACT Variables:
+================================
+Whenever ansible controller connects to its worker nodes
+ Always Ansible will gather complete information or details about each worker node
+It will gather information like host details, architecture,network,ipaddress, BIOS information,OS,memory etc etc
+This gathered information is called as FACTS
+
+Ansible stores each fact in a variable called as fact variables.
+These variables are created by Ansible and values are also computed by Ansible
+
+These variables will always start with “ansible_variablebName”
+
+These variable values are computed at runtime
+Some of these variable values are unique to each host server
+
+These variables are also called dynamic variables.
+The value of the variable changes from host to host
+
+In ansible we have a module called as setup module.
+
+
+Demo 1: See the fact variables:
+==============================
+
+ # ansible webserver -m setup
+ # ansible webserver -m setup -a "filter=ansible_hostname"
+ # ansible webserver -m setup -a "filter=ansible_os_family"
+# ansible webserver -m setup -a "filter=ansible_distribution"
+# ansible webserver -m setup -a "filter=ansible_dist*"
+
+
+
+
+# vim playbook5.yml
+
+
+- name: Fact variables in Ansible
+  hosts: webserver
+  become: true
+  tasks:
+  - name: install httpd package
+    package: name=httpd state=present
+    when: ansible_os_family == "RHEL"
+  - name: install apache2 package
+    package: name=apache2 state=present
+    when: ansible_os_family == "Debian"
+
+Save the file and run it
+
+Example 2: When keyword
+============================
+
+# vim playbookWhen.yml
+
+
+- name: When condition in playbook
+  hosts: webserver
+  become: true
+  tasks:
+  - name: install package on Debain machines
+    package: name=apache2 state=present
+    when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "24"
+  - name: Execute a command
+    command: hostname -s
+    when: (ansible_distribution == "Ubuntu") or
+               (ansible_distribution == "Amazon") or
+               (ansible_distribution == "RHEL")
+
+
+Save the file and execute the file.
+
+==============================================
+
+
+
+
+Tags in Ansible Playbook:
+==========================================
+
+Tags allows us to run specific tasks in the playbook
+If we want set of tasks to be executed together then we can use tags
+
+# vim  playbookTags.yml
+
+- name: Tags in ansible
+  hosts: webserver
+  become: true
+  tasks:
+  - name: exeucte a command
+    command: echo "Hello All"
+    tags: cmd
+  - name: execute a command to update apt
+    command: apt-get update
+    tags: cmd
+  - name: Install a package
+    package: name=tree state=present
+    tags: install
+  - name: Uninstall tree package
+    package: name=tree state=absent
+
+
+ansible-playbook playbookTags.yml --tags untagged
+
+# ansible-playbook playbookTags.yml --tags install
+
+# ansible-playbook playbookTags.yml --tags cmd
+
+#  ansible-playbook playbookTags.yml --tags cmd,install
+
+# ansible-playbook playbookTags.yml --tags untagged
+
+# ansible-playbook playbookTags.yml --tags tagged
+
+
+==============================================
+Problem statement:
+==========================
+We have to always copy config files on each server 
+These config files with have:
+ -> some common content/code/paramters
+ -> some content which is unique to each host server 
+ So it is not a good practice to manually create unique files for each host server  
+ 
+Solution:
+Use Templates in Ansible: 
+=======================
+A file with text and data 
+This data is computed by ansible for every worker node 
+Ansible will update host server specific data in the template file 
+Ansible will then copy that unique file to the  hosts servers
+
+Ansible will perform this task using Jinja2 templates 
+================================
+Jinja2 is a templating engine present in Ansible
+It comes preinstalled in ansible controller 
+There is no jinja2 on worker nodes
+Templating happens only on the controller machine.
+A jinja2 template is a file with extension .j2 
+The jinja2 file consist of :
+- plain text
+- FACT variables
+- Custom Static Variable 
+
+When we execute the template Ansible will:
+  -> keep the text as it is
+  -> it will replace the static variables with their values as given by user 
+  -> it will replace fact variables with values unique to each host
+
+This way unique config file will be copied on each host server.
+
+==========================================
+
+Demo:
+=========================================
+
+
+
+
+
+# vim file.config.j2
+
+This is my application configuration file
+This file is created by {{ author }}
+This file is present in directory /etc
+
+hostname = {{ ansible_nodename }}
+Ip address = {{ ansible_default_ipv4["address"] }}
+OS = {{ ansible_os_family }}
+
+For any concerns send an email to {{ email }}
+
+
+Save the file
+
+
+# vim playbookJinja2.yml
+
+- name: Jinja2 templates
+  hosts: webserver
+  become: true
+  vars:
+    author: admin
+    email: admin@gmail.com
+  tasks:
+  - name: copy jinja2 file on the host
+    template: src=file.config.j2 dest=/etc/file.config
+
+Run the playbook
+
+
+Validate:
+# ansible webserver -m command -a "cat /etc/file.config"
+
+====================================================
+
+Demo2:
+======================================
+
+# vim myinventory
+
+[webserver]
+18.233.160.220 http_port=80
+
+
+# vim ports.conf.j2
+
+# If you just change the port or add more ports here, you will likely also
+# have to change the VirtualHost statement in
+# /etc/apache2/sites-enabled/000-default.conf
+
+Listen {{ http_port }}
+
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+
+Save the above file.
+
+
+
+# vim 000-default.conf.j2
+<VirtualHost *:{{http_port}}>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, which are
+        # enabled or disabled at a global level, it is possible to
+        # include a line for only one particular virtual host. For example the
+        # following line enables the CGI configuration for this host only
+        # after it has been globally disabled with "a2disconf".
+        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+
+
+
+Save the file
+
+
+# vim playbookapache.yml
+
+- name: Update config files of apache2 server
+  hosts: webserver
+  become: true
+  tasks:
+  - name: Update the repo
+    command: apt-get update
+  - name: Install apache2
+    package: name=apache2 state=present
+  - name: Copy the update apache2 ports.conf file
+    template: src=ports.conf.j2 dest=/etc/apache2/ports.conf
+  - name: Copy the updated 000-defualt.conf file
+    template: src=000-default.conf.j2 dest=/etc/apache2/sites-enabled/000-default.conf
+  - name: Restart apache2 service
+    service: name=apache2 state=restarted
+
+
+Save the file and execute
+
+
+Validate:
+
+# ansible webserver -m command -a "cat /etc/apache2/ports.conf"
+
+#  ansible webserver -m command -a " cat /etc/apache2/sites-enabled/000-default.conf"
+
+=============================================
+HANDLERS:
+=============================================
+
+Handlers:
+============
+
+When we have a set of tasks to be executed only when required then use handlers
+Handlers are executed only when notified by the parent tasks - notify keyword
+Handler tasks will be notified only and only when the status of the parent task is changed
+IF the parent task status is Ok - ansible will not notify the handler to run
+Handlers tasks are execute after all the parent task have been executed
+As the task is executed - tasks status is chnaged --notify the handler to run- handler executed at this point
+We make use of concept of flush_handlers
+Using --force-handlers at runtime - notifed handlers will be executed even if playbook has failed Tasks
+
+
+Observations:
+=================
+1. Tasks under the handler section of the playbook are not executed by themselves
+2. Even though we have added notify keyword under the parent tasks to notify handlers, however the handlers were not executed 
+3. Handler tasks though notified multiple times during the play but they will execute only once at the end.
+4. Using meta and flush handlers task are executed immediately as they are notified 
+5. If any task fails in the playbook -> all handlers will not execute even though they have been notified by previous successful task.
+Using --force-handlers at runtime - notifed handlers will be executed even if playbook has failed Tasks
+
+
+
+
+
+# vim playbookHandlers.yml
+
+- name: handlers in Ansible
+  hosts: webserver
+  become: true
+  tasks:
+  - name: To run a command
+    command: echo "Trigger a command"
+    notify: Run a command
+  - name: Start a service
+    command: echo "start service"
+    notify: Restart apache2 service
+  - name: Create a file
+    command: echo "File created"
+    notify: File Create
+  handlers:
+  - name: Run a command
+    command: hostname -s
+  - name: Restart apache2 service
+    service: name=apache2 state=restarted
+  - name: File Create
+    file: path=/tmp/newfile state=touch
+
+
+Save and execute, handlers will run at the last
+
+
+Demo : Flush the handlers as they are notified
+
+# vim playbookhandlers2.yml
+
+
+- name: handlers in Ansible
+  hosts: webserver
+  become: true
+  tasks:
+  - name: To run a command
+    command: echo "Trigger a command"
+    notify: Run a command
+  - meta: flush_handlers  # all handlers notified till here  will get executed
+  - name: Start a service
+    command: echo "start service"
+    notify: Restart apache2 service
+  - name: Create a file
+    command: echo "File created"
+    notify: File Create
+  handlers:
+  - name: Run a command
+    command: hostname -s
+  - name: Restart apache2 service
+    service: name=apache2 state=restarted
+  - name: File Create
+    file: path=/tmp/newfile state=touch
+
+
+Save and run it.
+
+# vim playbookHandlers3.yml
+
+- name: handlers in Ansible
+  hosts: webserver
+  become: true
+  tasks:
+  - name: To run a command
+    command: echo "Trigger a command"
+    notify: Run a command
+  - name: Start a service
+    command: ech "start service"
+    notify: Restart apache2 service
+    ignore_errors: true
+  - name: Create a file
+    command: echo "File created"
+    notify: File Create
+  handlers:
+  - name: Run a command
+    command: hostname -s
+  - name: Restart apache2 service
+    service: name=apache2 state=restarted
+  - name: File Create
+    file: path=/tmp/newfile state=touch
+
+
+# ansible-playbook playbookHandlers3.yml --force-handlers
+
+If any task fails in the playbook -> all handlers will not execute even though they have been notified by previous successful task.
+Using --force-handlers at runtime - notifed handlers will be executed even if playbook has failed Tasks
+
+
+===============================================
+
+Ansible Roles:
+=================================================
+
+# mkdir roles
+
+# cd roles
+
+# ansible-galaxy init apache
+
+# cd apache
+
+# ls
+
+# vim tasks/main.yml
+
+  - name: Update the repo
+    command: apt-get update
+  - name: Install apache2
+    package: name={{ pkg_name }} state=present
+  - name: Copy the update apache2 ports.conf file
+    template: src=ports.conf.j2 dest={{ dest_ports_path }}
+  - name: Copy the updated 000-defualt.conf file
+    template: src=000-default.conf.j2 dest={{ dest_default_path }}
+    notify: Restart apache2 service
+
+
+Save the file
+
+
+
+
+# vim vars/main.yml
+
+pkg_name: apache2
+dest_ports_path: /etc/apache2/ports.conf
+dest_default_path: /etc/apache2/sites-enabled/000-default.conf
+http_port: 80
+
+
+Save the file
+
+# vim templates/ports.conf.j2
+
+# If you just change the port or add more ports here, you will likely also
+# have to change the VirtualHost statement in
+# /etc/apache2/sites-enabled/000-default.conf
+
+Listen {{ http_port }}
+
+<IfModule ssl_module>
+        Listen 443
+</IfModule>
+
+<IfModule mod_gnutls.c>
+        Listen 443
+</IfModule>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+
+
+Save the file
+
+# vim templates/000-default.conf.j2
+
+<VirtualHost *:{{http_port}}>
+        # The ServerName directive sets the request scheme, hostname and port that
+        # the server uses to identify itself. This is used when creating
+        # redirection URLs. In the context of virtual hosts, the ServerName
+        # specifies what hostname must appear in the request's Host: header to
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # For most configuration files from conf-available/, which are
+        # enabled or disabled at a global level, it is possible to
+        # include a line for only one particular virtual host. For example the
+        # following line enables the CGI configuration for this host only
+        # after it has been globally disabled with "a2disconf".
+        #Include conf-available/serve-cgi-bin.conf
+</VirtualHost>
+
+Save this file 
+
+# vim handlers/main.yml
+
+- name: Restart apache2 service
+  service: name={{ pkg_name }} state=restarted
+
+
+Save the file
+
+
+# cd
+
+Create a playbook to run the role
+
+# vim playbookRoles.yml
+
+- name: Roles in ansible
+  hosts: webserver
+  become: true
+  roles:
+  - apache
+
+Save the file and run the playbook.
+
+===========================================
+Roles Demo 2:
+===========================================
+
+# cd roles
+
+# ansible-galaxy init servers
+
+# cd servers
+
+# vim tasks/main.yml
+
+- name: Install required software
+  package: name={{ item }} state=present
+  loop:
+  - apache2
+  - mysql-server
+  - php-mysql
+  - php
+  - libapache2-mod-php
+  - python3-mysqldb
+
+
+Save the file
+
+
+
+
+
+Create another role
+
+# cd
+
+# cd roles
+
+# ansible-galaxy init php
+
+# cd php
+
+# vim tasks/main.yml
+
+- name: Install php extensions
+  package: name={{ item }} state=present
+  loop:
+  - php-gd
+  - php-ssh2
+
+Save the file
+
+Now create another role
+
+# cd
+
+# cd roles
+
+# ansible-galaxy init mysql
+
+# cd mysql
+
+# vim tasks/main.yml
+
+
+- name: Create mysql database
+  mysql_db: name={{ wp_mysql_db }} state=present
+- name: Create mysql user
+  mysql_user:
+   name={{ wp_mysql_user }}
+   password={{ wp_mysql_password }}
+   priv=*.*:ALL
+ 
+
+
+Save the file
+
+
+# vim defaults/main.yml
+
+
+  wp_mysql_db: wordpress
+  wp_mysql_user: wordpress
+  wp_mysql_password: wordpress
+
+
+Save the file
+
+
+Come out of the roles directory
+
+# cd
+
+
+# vim playbookRoles.yml
+
+
+- name: Roles in ansible
+  hosts: webserver
+  become: true
+  roles:
+  - apache
+  - servers
+  - php
+  - mysql
+
+
+Save and run the playbook
+
+================================================
+
+Tomcat role : https://github.com/Sonal0409/tomcat-role.git
+Agenda:
+==========================
+Ansible vault
+Dynamic Inventory in Ansible 
+Terraform and its architecture
+TF configuration and its workflow
+Data block in terraform
+Variables & Dynamic block in terraform
+
+
+Ansible Vault:
+====================================
+
+
+Ansible playbook cannot store data in an encrypted format
+So Ansible comes with a utility called as Ansible vault which can be used to store secrets or passwords in an encrypted format
+Ansible vaults are password protected
+Ansible vaults is tool that will take your plain text and convert it to encrypted data
+An encrypted data can decrypted using vault
+The ansible vault will use an algorithm called as AES256 for encryption of data 
+Ansible playbook can refer to the encrypted data in the vault only and only if we provide the vault password while executing the playbook
+Ansible vault utility is present on the controller machine only.
+
+
+Demo:
+
+ Use ansible vault to create a new encrypted file and store it in the vault.
+
+
+# su - ansiuser
+
+# ansible-vault create vault1.yml
+
+New Vault password: 123
+Confirm New Vault password: 123
+Now the file with open, press i to insert data
+
+Confidentials data!
+
+Save the file (:wq!)
+
+
+Now see the content of the file
+
+# cat vault1.yml
+
+
+Demo 2: Use ansible-vault command to view the encrypted data of the file:
+
+# ansible-vault view vault1.yml
+
+Vault password: 123
+
+You should see actual data
+
+
+Demo 3: use ansible vault to encrypt data of an existing file
+
+# echo "Text to be encrypted" >> encrypt_me.txt
+
+# ansible-vault encrypt encrypt_me.txt
+
+New Vault password: 123
+Confirm New Vault password: 123
+
+Encryption successful
+
+# cat encrypt_me.txt
+
+
+Demo 4: Use ansible-vault to decrypt an encrypted file:
+
+# ansible-vault decrypt encrypt_me.txt
+Vault password: 123
+Decryption successful
+
+# cat encrypt_me.txt
+
+
+Execution of Ansible playbook using vault secrets
+=====================================
+
+# ansible-vault create secrets.yml
+
+New Vault password: 123
+Confirm New Vault password: 123
+
+Press i
+
+Give data as:
+
+
+username: ansible123
+password: ansible@123
+
+Save the file
+
+# vim playbookSecrets.yml
+
+- name: use ansible vault to fetch variable values
+  hosts: webserver
+  become: true
+  vars_files:
+   - secrets.yml
+  tasks:
+  - name: Create a user on hostserver
+    user: name={{username}} password={{password}}
+
+
+
+Save the file and run the playbook
+
+
+#  ansible-playbook playbookSecrets.yml --ask-vault-pass
+
+ Ansible Dynamic Inventory
+===========================
+
+By default in ansible we have a hosts file where we write the list of Ip address of the hosts servers where we have to do the changes.
+This file is static where the ip address are fixed, user will manually add new ips or remove Ipaddress that are not required.
+
+But consider a use case where your infrastructure on the cloud and the number of servers are scaling up or scaling down dynamically.
+
+Since the inventory on AWS is dynamic, we cannot hard code the inventory/hosts file on Ansible controller. That will not be correct approach
+
+What is the solution then?
+
+We will take help of Ansible where
+Ansible will connect to AWS securely
+We will use an ansible plugin that will check number of VMs in the desired region on AWS and fetch the ip address or hostnames on the ansible controller machine.
+Once ansible collects the ipaddress of the VMs on the cloud it will automatically compute an Inventory file for the user
+We will use a command to generate this inventory file
+Whenever the command is run  Ansible → connect to AWS→ go to desired region → collects IP of available VMs→ displays the inventory file on the controller
+Now whenever the user will run the playbook, ansible will use the dynamic inventory and execute the changes on the dynamic VMs
+
+Steps for 1 st part:
+===================================
+First Prepare Ansible Controller to install packages that required to connect to AWS
+Install the ansible Cloud plugin and update its details in ansible.cfg file
+Create a new inventory file ->The name of the inventory file should always end with aws_ec2.yml
+
+Steps of Part 2:
+
+1. Create credentials on AWS, so ansible can connect to AWS
+2. Create some Ec2 Vms on AWS of which ansible will fetch the inventory details.
+
+Steps of Part3:
+
+Ansible Controller connects to those EC2 servers using SSH
+Ansible controller executes playbook on the server
+
+
+Note:
+
+The SDK is composed of two key Python packages: Botocore (the library providing the low-level functionality shared between the Python SDK and the AWS CLI) and Boto3 (the package implementing the Python SDK itself).
+
+https://boto3.amazonaws.com/v1/documentation/api/latest/guide/quickstart.html
+
+
+Execute below steps:
+=============================
+
+Whichever user you are logged in with the same user you will install the packages and run the ansible inventory command
+
+# su - ansiuser
+
+Install ansible aws_ec2 plugins
+The plugin is part of the amazon.aws collection
+We will install the desired collection
+
+# ansible-galaxy collection install amazon.aws
+
+In order to install boto3 and botocore we need python3-pip package
+
+# sudo apt-get update
+
+# sudo apt install python3-pip
+
+# pip3 install boto3
+
+# pip show boto3
+
+# sudo apt-get update
+
+# sudo apt-get install awscli -y
+
+Update the ansible.cfg file for it to use the aws_ec2 plugin to fetch the inventory
+
+# vim ansible.cfg
+
+[defaults]
+
+inventory = /home/ansiuser/myinventory
+
+enable_plugins = aws_ec2
+
+Save the file
+
+
+
+
+Create the aws_ec2 inventory file
+
+# vim aws_ec2.yml
+
+plugin: amazon.aws.aws_ec2
+regions:
+ - us-east-1
+
+
+Save the file
+
+
+
+
+
+Go to AWS LAB AND pick up the accesskey credentials:
+
+
+
+
+
+
+On the Ansible Lab:
+
+Take the access key and secret key and save it as environment variables on the Lab:
+
+Run these commands
+
+ # export AWS_ACCESS_KEY_ID=AKIAXYX74ZQAJ2C4XK35
+# export AWS_SECRET_ACCESS_KEY=eVq4tjJ31qaDzN9H
+
+Now execute the command to list the inventory:
+
+# ansible-inventory -i /home/ansiuser/aws_ec2.yml --list
+
+
+
+
+
+Create Ec2 instances on AWS 
+
+On the master node run the inventory command:
+
+# ansible-inventory -i /home/ansiuser/aws_ec2.yml --list
+
+
+
+Do these steps as Assignment:
+============================================
+
+Connecting Ansible controller to your cloud machine over SSH
+===========================================
+
+
+Run the Ansible command on the dynamic inventory
+
+If we want to create 10 servers, we would not want to execute steps of creating ansiuser, copying ssh keys and updating config file manually on all server
+Solution for this is : 
+Take the created ANsible worker to aws that connected to Ansible controller via ssh
+Convert the node as an AMI
+So all the worker nodes configuration/softwares/OS/user details will be available as AMI
+Now we will create new Vms with our custom AMI -> So all the new instances will have
+  Ansible controller SSH keys
+ Will have ansiuser and config file updates
+
+Assignment/homework steps: 
+======================================
+Now go to AWS and select your EC2 worker server
+Convert the Ec2 server in to an Image
+
+
+Give the Image name as AnsibleHostImage→ click on create Image
+
+You can see you image by clicking on AMI
+
+
+
+It will take 5 mins to create the AMI
+Once the AMi is available.
+7. We will now create multiple Instance with the new Image itself
+Click on launch Instance → neter the name and selct the AMi that we have created
+
+
+Launch the instance
+8 go to the master node:
+# ansible-inventory -i aws_ec2.yml --list
+# ansible aws_ec2 -i aws_ec2.yml -m ping
+================================================
+Run the playbook
+
+# vim playbook-dynamic.yml
+- name: Execute variables from vault
+  hosts: aws_ec2
+  become: true
+  tasks:
+  - name: create a user on worker node
+    file: path=/tmp/file state=touch
+                                                    
+Save the file and run it
+# ansible-playbook -i aws_ec2.yml playbook-dynamic.yml
+======================================
+Terraform
+========================================
+
+Install Terraform on lab:
+
+# wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+# echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+# sudo apt update && sudo apt install terraform
+
+
+
+
+====================================================
+
+Terraform Code is always written in the form of blocks:
+
+There are different types of blocks:
+Provider block
+Resource block
+Variable block
+Output block
+Association block
+Nested block
+Dynamic block
+Local block
+Provisioner block
+Module block
+
+
+
+
+Type of block “resourceName” “Unique BlockName” {
+      Desired infra Code
+}
+
+1st block is Provider block
+=================================================
+
+Example:
+
+provider "aws" {
+  region     = "us-west-2"
+  access_key = "my-access-key"
+  secret_key = "my-secret-key"
+}
+
+https://registry.terraform.io/providers/hashicorp/aws/latest/docs
+
+
+Demo 1: Store AWS credentials in a shared credentials file and then use it in the TF config file.
+In this way your accesskey and secret key will not be exposed to the outside world.
+
+# apt-get update
+
+# apt-get install awscli -y
+
+# aws configure
+
+Give the valid access key
+
+Give the valid secret key
+
+Press enter, no need to give any region and format option
+To verify if the credentials have been set for aws
+
+# cat ~/.aws/credentials
+
+Now create the provider block for terraform:
+=====================================
+
+# mkdir myterraformfiles
+
+# cd myterraformfiles
+
+# vim aws_infra.tf
+
+
+provider "aws" {
+  region = "us-east-1"
+  shared_credentials_files =  ["~/.aws/credentials"]
+}
+
+Save the file and we will install aws provider plugin
+
+# terraform init
+
+Demo 3: Create the first resource to create EC2 server via terraform
+
+# vim aws_infra.tf
+
+
+Add this block of code
+
+resource "aws_instance" "myec2" {
+
+  ami           = "ami-02457590d33d576c3"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Instance1"
+  }
+}
+ 
+Save the file.
+
+# terraform validate
+
+# terraform plan
+
+# terraform  apply --auto-approve
+
+# terraform destroy --auto-approve
+
+
+Demo 3:
+==========================================
+
+Write a data block which will filter details and fetch AMI id from AWS
+
+The fetched Ami id will be present in terraform.tfstate
+Data block will not create any resource on AWS.
+It is just a block that will filter AWS ami data based on your inputs and fetch it
+
+Pass the fetched AMI ID form data block to aws_instance resource block.
+
+
+Add below code in the file
+
+# vim aws_infra.tf
+
+
+data "aws_ami" "myami" {
+
+most_recent      = true
+
+owners           = ["amazon"]
+
+ filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
+
+
+}
+
+
+resource "aws_instance" "myec2" {
+
+  ami           = data.aws_ami.myami.id
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Instance1"
+  }
+
+
+# terraform apply --auto-approve
+
+Destroy a specific resource 
+# terraform destroy -target aws_instance.myec2
+=======================================
+Variables in Terraform:
+=======================================
+Variables are used to store any data
+In terraform variables are created using the variable block 
+A variable can store a single value or a list of values
+A variable block can be created with the TF config file or can be created in a separate file
+Syntax of variable block:
+=========================
+variable “name_variable” {
+default = “variable-value”
+}
+======================
+Demo:
+# sudo su -
+# apt-get update
+
+# apt-get install awscli -y
+
+# aws configure
+
+Give the valid access key
+
+Give the valid secret key
+
+Press enter, no need to give any region and format option
+To verify if the credentials have been set for aws
+
+# cat ~/.aws/credentials
+
+# mkdir myterraformfiles
+
+# cd myterraformfiles
+
+# vim variables.tf
+
+variable "region" {
+
+default = "us-east-1"
+
+}
+
+variable "credentials" {
+
+default = "~/.aws/credentials"
+
+}
+
+variable "instance_type" {
+
+default = "t2.micro"
+}
+
+variable "env" {
+
+default = "Dev"
+}
+
+
+Save the file
+# vim aws_infra.tf
+
+provider "aws" {
+  region = var.region
+  shared_credentials_files =  [var.credentials]
+}
+
+
+
+data "aws_ami" "myami" {
+
+most_recent      = true
+
+owners           = ["amazon"]
+
+ filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
+
+
+}
+
+
+resource "aws_instance" "myec2" {
+
+  ami           = data.aws_ami.myami.id
+  instance_type = var.instance_type
+
+  tags = {
+    Name = var.env
+  }
+}
+
+
+Save the file
+
+# terraform init
+
+# terraform apply 
+Variables
+
+Variables can be used to store any data
+Variables are created using a block called as variable block.
+This block can be written inside the configuration file or can be written in a separate file
+A variable will store a single value or a list of values
+A variable can have  an actual value and a default value.
+
+Variable block Example:
+
+variable “variableName” {
+default = “variable value”
+}
+
+
+
+Demo 1: variable with String
+
+
+# terraform destroy --auto-approve
+
+Create a new file with name as variables.tf
+# vim variables.tf
+
+variable "region" {
+ default = "us-east-1"
+
+}
+
+variable "instance_type"{
+
+default = "t2.micro"
+
+}
+
+variable "env" {
+default = "dev"
+}
+
+
+Now go to aws_infra.tf file. Replace values with variable 
+
+
+provider "aws" {
+  region     = var.region
+  shared_credentials_files = ["~/.aws/credentials"]
+}
+
+
+data "aws_ami" "myami" {
+
+most_recent      = true
+
+owners           = ["amazon"]
+
+ filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
+
+
+}
+
+
+resource "aws_instance" "myec2" {
+
+  ami           = data.aws_ami.myami.id
+  instance_type = var.instance_type
+
+  tags = {
+    Name = var.env
+  }
+}
+
+
+Save the file
+
+# terraform plan
+
+
+Demo 2: variable with List and variable with map
+
+# vim variables.tf
+
+variable "region" {
+default = "us-east-1"
+}
+
+variable "ports" {
+type = list(number)
+default = [80809,9090,80]
+}
+
+variable "instance" {
+type = map
+
+default = {
+
+"dev" = "t2.micro"
+"prod" = "t2.large"
+
+}
+
+}
+
+
+
+Demo 3: variable with object
+
+variable "ec2_object" {
+type = object ({
+ 
+aws_region = string
+aws_ami = string
+instance_type = list(string)
+instance_name = string
+
+   })
+
+default = {
+ aws_region = "us-east-1"
+aws_ami = "ami-0b09ffb6d8b58ca91"
+instance_type = ["t2.micro","t2.medium","t3.micro"]
+instance_name = "myinstance"
+
+}
+
+}
+
+provider "aws" {
+
+region = var.ec2_object.aws_region
+
+}
+
+
+
+
+resource "aws_instance" "myec2" {
+
+  ami           = var.ec2_object.aws_ami
+  instance_type = var.ec2_object.instance_type[0]
+
+  tags = {
+    Name = var.ec2_object.instance_name
+  }
+}
+
+
+# terraform plan
+Dynamic block
+
+Best practices for using terraform dynamic blocks effectively.
+Use them when you're dealing with:
+Nested blocks (e.g., ingress, egress, statement blocks)
+
+
+Conditional nested blocks
+
+
+Variable-length configurations where blocks are optional
+
+
+Design your variables as structured data to simplify dynamic logic.
+Use for_each within dynamic blocks correctly
+Always reference .value inside the content block.
+
+
+Keep block names (e.g., ingress) in sync with the resource you’re targeting.
+Keep content blocks readable
+Dynamic blocks are harder to read than static blocks. A short comment explaining why a dynamic block is used can help future maintainers.
+Don’t turn everything into a dynamic block just to DRY up code. Sometimes multiple static blocks are clearer and more maintainable.
+ make sure dynamic blocks are rendering as expected. Errors in dynamic logic can be hard to spot.
+If dynamic behavior gets too complex, it may be a sign you should extract logic into a module with clearly defined inputs.
+
+
+
+Demo 1:
+
+provider "aws" {
+
+region = "us-east-1"
+
+shared_credentials_files =  ["~/.aws/credentials"]
+
+}
+
+variable "sg_ports"{
+type = list(number)
+default = [80,443,22]
+
+}
+
+resource "aws_security_group" "mysg" {
+  name        = "custom-sg"
+  description = "Allow inbound traffic"
+
+dynamic "ingress" {  # here ingress is a lable or temporary variable to store the list of value fetched by loop
+    for_each = var.sg_ports
+   # iterator = port_var_name # it is temporary variable to store variable list value
+    content {
+    from_port        = ingress.value
+    to_port          = ingress.value
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+
+  }
+}
+
+
+}
+
+================================
+
+provider "aws" {
+
+region = "us-east-1"
+
+shared_credentials_files =  ["~/.aws/credentials"]
+
+}
+
+variable "sg_config"{
+
+default = [
+
+{ port=80,protocol="tcp",cidr_blocks="0.0.0.0/0" },
+{ port=8080,protocol="udp",cidr_blocks="10.0.0.0/16" },
+{ port=22,protocol="ssh",cidr_blocks="10.0.0.0/20" },
+{ port=443,protocol="tcp",cidr_blocks="10.0.0.0/16" },
+
+]
+
+}
+
+resource "aws_security_group" "mysg" {
+  name        = "custom-sg"
+  description = "Allow inbound traffic"
+
+dynamic "ingress" {
+for_each = var.sg_config
+    content {
+    from_port        = ingress.value.port
+    to_port          = ingress.value.port
+    protocol         = ingress.value.protocol
+    cidr_blocks      = [ingress.value.cidr_blocks]
+
+  }
+}
+
+
+}
+=========================================
+Modules
+=======================================
+
+Modules in terraform are nothing but a collection of configuration files that are written in dedicated directories
+
+A modules encapsulates group of resources, variables, output blocks that can then be reused again and again to create different infrastructure in different environments
+
+In a team one can create modules for various resources and others can reuse them for infrastructure creation
+
+Hence, modules are reusable terraform code
+
+The directory that we have been working so far as resources blocks, variables, output blocks data block etc-> hence it can be called as root module
+
+Terraform allows us to create child modules.
+These child modules can be sourced in the main configuration file.
+
+Modules that we write and execute and use in our local machine called as Local modules
+
+Modules that are readily available on Terraform registry 
+OR
+User can also push the modules to SCM system
+They are called as published modules
+
+A typical module directory consist of:
+
+> TF config file with resource blocks
+> output.tf
+> variable.tf 
+> README.md
+
+
+====================================
+Demo:
+====================================
+
+# cd
+
+# mkdir modules dev prod
+
+# cd modules
+
+#  mkdir myec2     ⇒ this is a module name
+
+# cd myec2
+
+# vim myec2.tf
+
+
+data "aws_ami" "myami" {
+
+  most_recent = true
+
+  owners = ["amazon"]
+
+  filter{
+    name = "name"
+    values = ["amzn2-ami-hvm*"]
+}
+
+}
+
+
+resource "aws_instance" "test-ec2" {
+
+ami = data.aws_ami.myami.id
+
+instance_type = var.instance_type
+
+  tags = {
+    Name = "Instance-test"
+  }
+
+
+}
+Save the file,
+
+# vim variables.tf
+
+variable "instance_type" {
+default = "t2.micro"
+}
+
+
+Save the file
+
+Copy the path of directory
+
+/root/modules/myec2
+
+
+Now come out of current directory
+
+# cd ..
+
+# mkdir mysg     ⇒ this module name 2
+
+# cd mysg
+
+# vim mysg.tf
+
+Add this block
+resource "aws_security_group" "mysg" {
+  name        = "allow_tls"
+ingress {
+     from_port        = local.port
+     to_port          = local.port
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    }
+  }
+
+locals{
+  port = 8443
+}
+
+
+
+Save the file
+
+
+# vim variables.tf
+variable "port" {}
+
+Save the file
+
+Copy the path of this module:
+/root/modules/mysg
+
+# cd
+
+# mkdir dev
+
+# cd dev
+
+# vim main.tf
+
+main.tf
+
+provider "aws" {
+
+region = "us-east-1"
+shared_credentials_files = ["~/.aws/credentials"]
+
+}
+
+module "myec2module"{
+
+source = "/root/modules/myec2"
+instance_type = "t2.large"
+
+}
+
+module "mysgmodule" {
+ source = "/root/modules/mysg"
+ port = 8080
+
+}
+
+
+Save the file
+
+
+# terraform init
+
+
+# terraform plan
+
+=========================================
+Creating a modules to create same resource in different AWS regions
+==========================================
+
+
+# cd modules
+# mkdir region_module
+
+# cd region_module
+
+# vim region.tf
+
+variable "region" {
+
+type = string
+
+}
+
+
+provider "aws" {
+
+region = var.region
+
+shared_credentials_files =  ["~/.aws/credentials"]
+
+}
+
+data "aws_ami" "myami"{
+
+most_recent = true
+
+owners = ["amazon"]
+
+filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
+
+}
+
+resource "aws_instance" "myec2-1" {
+  ami           = data.aws_ami.myami.id
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "terraform1"
+  }
+
+
+}
+
+Save the file
+
+The path of module is: /root/modules/region_module
+
+# mkdir provider_demo
+
+# cd provider_demo
+
+# vim main.tf
+
+
+variable "regions" {
+
+type = list(string)
+
+default = ["us-east-1", "us-east-2", "us-west-1"]
+
+}
+
+module "aws_region_demo" {
+
+source = "/root/modules/region_module"
+
+region = var.regions[0]
+
+}
+
+module "aws_region_demo1" {
+
+source = "/root/modules/region_module"
+
+region = var.regions[1]
+
+}
+
+
+# terraform init
+
+Provider alias
+
+provider "aws" {
+
+region = "us-east-1"
+
+}
+
+provider "aws" {
+
+alias = "west"
+region = "us-west-1"
+
+}
+
+provider "aws" {
+
+alias = "east"
+region = "us-east-2"
+
+}
+
+
+
+module "mydev-ec2"{
+
+source = "/root/modules/myec2-module"
+instance_type = "t2.medium"
+env = "dev01"
+
+}
+
+output "module-output" {
+
+value = module.mydev-ec2.instance_data
+
+}
+
+module "mydev-ec2-2"{
+
+providers = {
+
+aws = aws.west
+}
+
+source = "/root/modules/myec2-module"
+instance_type = "t2.medium"
+env = "dev01"
+
+}
+
+
+module "mydev-sg" {
+source = "/root/modules/mysg-module"
+port = 9090
+
+}
+
+output "module-output-sg"{
+
+value = module.mydev-sg.sg_id
+
+
+}
+
+
+
+
+Provisioners:
+  -> Local-exec provisioner
+ -> Remote-exec provisioners
+→ Null Resource
+
+============================================
+Provisioners:
+If we have to perform a set of actions on the local machine or on the AWS remote machine we can then use terraform provisioners
+
+Local-exec provisioners:
+
+Using this provisioner terraform can run a command or a script on the local machine(lab machine) where terraform is present.
+
+Example:
+If we generate TLS private key and public key
+We can use local-exec provisioner to run a command that will copy the private key into a new file on the local machine.
+
+The provisioner block is always nested inside the resource block
+
+Demo of Local-exec provisioner:
+=====================================
+# mkdir provisioner-demo
+# cd provisioner-demo
+
+# vim main.tf
+ 
+provider "aws" {
+
+region = "us-east-1"
+
+shared_credentials_files =  ["~/.aws/credentials"]
+
+}
+
+resource "tls_private_key" "mykey" {
+  algorithm = "RSA"
+
+}
+
+resource "aws_key_pair" "aws_key" {
+  key_name   = "web-key"
+  public_key = tls_private_key.mykey.public_key_openssh
+
+  provisioner "local-exec" {
+  command = "echo '${tls_private_key.mykey.private_key_openssh}' > ./web-key.pem"
+
+}
+
+}
+
+Save the file
+
+# terraform init
+
+# terraform apply
+Remote-exec:
+===============================
+
+IN the same directory provisioner-demo
+Create a new file
+# vim remote-exec.tf
+
+resource "aws_vpc" "sl-vpc" {
+ cidr_block = "10.0.0.0/16"
+  tags = {
+   Name = "sl-vpc"
+}
+
+}
+
+resource "aws_subnet" "subnet-1"{
+
+vpc_id = aws_vpc.sl-vpc.id
+cidr_block = "10.0.1.0/24"
+depends_on = [aws_vpc.sl-vpc]
+map_public_ip_on_launch = true
+  tags = {
+   Name = "sl-subnet"
+}
+
+}
+
+resource "aws_route_table" "sl-route-table"{
+vpc_id = aws_vpc.sl-vpc.id
+  tags = {
+   Name = "sl-route-table"
+}
+
+}
+
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.subnet-1.id
+  route_table_id = aws_route_table.sl-route-table.id
+}
+
+
+resource "aws_internet_gateway" "gw" {
+ vpc_id = aws_vpc.sl-vpc.id
+ depends_on = [aws_vpc.sl-vpc]
+   tags = {
+   Name = "sl-gw"
+}
+
+}
+
+resource "aws_route" "sl-route" {
+
+route_table_id = aws_route_table.sl-route-table.id
+destination_cidr_block = "0.0.0.0/0"
+gateway_id = aws_internet_gateway.gw.id
+
+
+}
+
+variable "sg_ports" {
+type = list(number)
+default = [8080,80,22,443]
+
+}
+
+
+
+
+resource "aws_security_group" "sl-sg" {
+  name        = "sg_rule"
+  vpc_id = aws_vpc.sl-vpc.id
+  dynamic  "ingress" {
+    for_each = var.sg_ports
+    iterator = port
+    content{
+    from_port        = port.value
+    to_port          = port.value
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    }
+  }
+egress {
+
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+
+
+}
+
+}
+resource "aws_instance" "myec2" {
+  ami           = "ami-0a9a48ce4458e384e"
+  instance_type = "t2.micro"
+  key_name = "web-key"
+  subnet_id = aws_subnet.subnet-1.id
+  security_groups = [aws_security_group.sl-sg.id]
+  tags = {
+    Name = "Terrafrom-EC2"
+  }
+  provisioner "remote-exec" {
+  connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    private_key = tls_private_key.mykey.private_key_pem
+    host     = self.public_ip
+  }
+  inline = [
+  "sudo yum install httpd -y",
+  "sudo systemctl start httpd",
+  "sudo systemctl enable httpd",
+  "sudo yum install git -y"
+
+
+]
+
+}
+}
+
+
+Save the file
+# terraform apply
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
