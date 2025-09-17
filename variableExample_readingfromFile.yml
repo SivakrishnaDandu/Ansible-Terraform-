@@ -1,0 +1,15 @@
+---
+
+- name: Installing Apache2 and deply the code
+  hosts: webserver
+  become: true
+  become_user: root
+  vars_files:
+    - /home/ansiuser/variable.yml
+  tasks: 
+  - name: update repo
+    command: apt update
+  - name: install {{ pkg_name[1] }} packages
+    package: name={{ pkg_name[1] }} state={{ pkg_state[0] }}
+  - name: start the service
+    service: name={{ svc_name[1] }} state={{ svc_state[0] }}
